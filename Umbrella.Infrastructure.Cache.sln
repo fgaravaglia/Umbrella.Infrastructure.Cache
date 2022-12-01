@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32421.90
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbrella.Infrastructure.Cache", "src\Umbrella.Infrastructure.Cache\Umbrella.Infrastructure.Cache.csproj", "{D49DC694-CBFF-4C6A-98D1-2DE957818C38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Umbrella.Infrastructure.Cache.Tests", "src\Umbrella.Infrastructure.Cache.Tests\Umbrella.Infrastructure.Cache.Tests.csproj", "{78F49717-0F6F-48EE-BE3B-C41659F5B2BA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D49DC694-CBFF-4C6A-98D1-2DE957818C38}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D49DC694-CBFF-4C6A-98D1-2DE957818C38}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D49DC694-CBFF-4C6A-98D1-2DE957818C38}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D49DC694-CBFF-4C6A-98D1-2DE957818C38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78F49717-0F6F-48EE-BE3B-C41659F5B2BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78F49717-0F6F-48EE-BE3B-C41659F5B2BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78F49717-0F6F-48EE-BE3B-C41659F5B2BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78F49717-0F6F-48EE-BE3B-C41659F5B2BA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4734286D-C585-43C6-B5E6-BC35873E267F}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,198 @@
+trigger:
+  branches:
+    include:
+      - main
+      - development
+    # exclude:
+    #   - release-candidate
+    #   - release-1.0
+  paths:
+    include:
+      - src
+    exclude:
+      - devops/*
+
+schedules:
+  - cron: "0 12 * * 0"
+    displayName: Weekly Sunday build
+    branches:
+      include:
+        - main
+
+pool:
+  vmImage: "ubuntu-latest"
+
+parameters:
+  - name: MajorVersion
+    displayName: "Major Version"
+    default: 0
+  - name: MinorVersion
+    displayName: "Minor Version"
+    default: 9
+  - name: authors
+    displayName: "Names of authors of the target package"
+    default: "FG"
+  - name: company
+    displayName: "Company that produces the target package"
+    default: "Innova Solutions"
+  - name: copyright
+    displayName: "Copyright"
+    default: "FG 2022"
+  - name: SonarScanEnabled
+    displayName: "Enable Sonar Scan"
+    type: boolean
+    default: True
+  - name: TestExecutionEnabled
+    displayName: "Enable Test Execution"
+    type: boolean
+    default: False
+  - name: PublishPackage
+    displayName: "Publish Package to Nuget.Org"
+    type: boolean
+    default: False
+  - name: NugetApiKey
+    displayName: "APIKEY to Publish Package on Nuget.Org"
+    default: "set here your Nuget Api Key"
+
+variables:
+  buildConfiguration: "Release"
+  targetFramework: "6.x"
+  packageId: Umbrella.Infrastructure.Cache
+  nugetVersion: ${{ parameters.MajorVersion }}.${{ parameters.MinorVersion }}.$(Build.BuildId)
+  testReportFileName: cobertura.xml
+
+stages:
+  - stage: Build
+    jobs:
+      - job: CI
+        steps:
+          #### use the right version of .Net core
+          - task: UseDotNet@2
+            displayName: Use .NET CORE target version
+            inputs:
+              packageType: "sdk"
+              version: "6.x"
+
+          - template: .\devops\templates\dotnet-tool-install-coverlet.yaml
+
+          - task: SonarCloudPrepare@1
+            displayName: "Prepare analysis on SonarCloud"
+            inputs:
+              SonarCloud: "SonarCloud"
+              organization: "fgaravaglia"
+              scannerMode: "MSBuild"
+              projectKey: $(packageId)
+              projectName: $(packageId)
+              projectVersion: "${{ parameters.MajorVersion }}.${{ parameters.MinorVersion }}"
+              extraProperties: |
+                # Additional properties that will be passed to the scanner,
+                # Put one key=value per line, example:
+                sonar.exclusions=**/obj/**,**/*.dll,**/*.Tests/**,**/*.Tests/**/*.cs
+                sonar.cs.vstest.reportsPaths=$(Agent.TempDirectory)/*.trx
+                sonar.cs.opencover.reportsPaths=$(Build.SourcesDirectory)/**/$(testReportFileName)
+                sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+            condition: eq(${{ parameters.SonarScanEnabled }}, true)
+
+          - task: Assembly-Info-NetCore@2
+            displayName: Set Assembly Info
+            inputs:
+              Path: "$(Build.SourcesDirectory)"
+              FileNames: "**/*.csproj"
+              InsertAttributes: true
+              FileEncoding: "auto"
+              WriteBOM: false
+              Authors: "${{ parameters.authors }}"
+              Company: "${{ parameters.company }}"
+              Copyright: "${{ parameters.copyright }}"
+              VersionNumber: "${{ parameters.MajorVersion }}.${{ parameters.MinorVersion }}.$(Build.BuildId).0"
+              FileVersionNumber: "${{ parameters.MajorVersion }}.${{ parameters.MinorVersion }}.$(Build.BuildId).0"
+              InformationalVersion: "$(Build.BuildNumber)"
+
+          # - template: .\devops\templates\dotnet-build.yaml
+          #   parameters:
+          #     projPath: src/Umbrella.Infrastructure.Cache
+          #     projName: Umbrella.Infrastructure.Cache
+
+          - template: .\devops\templates\dotnet-build.yaml
+            parameters:
+              projPath: src/Umbrella.Infrastructure.Cache.Tests
+              projName: Umbrella.Infrastructure.Cache.Tests
+              publishRequired: false
+
+          ############################# TEST #################################
+          - template: .\devops\templates\dotnet-test.yaml
+            parameters:
+              projPath: src/Umbrella.Infrastructure.Cache.Tests
+              projName: Umbrella.Infrastructure.Cache.Tests
+
+          - task: SonarCloudAnalyze@1
+            displayName: "Run Sonar Cloud Analysis"
+            condition: eq(${{ parameters.SonarScanEnabled }}, true)
+
+          - task: SonarCloudPublish@1
+            displayName: "Publish Sonar Cloud Analysis"
+            inputs:
+              pollingTimeoutSec: "300"
+            condition: eq(${{ parameters.SonarScanEnabled }}, true)
+
+          ############################## PUBLISH DROP #################################
+          - task: PublishBuildArtifacts@1
+            displayName: publish artifacts
+            inputs:
+              PathtoPublish: "$(Build.ArtifactStagingDirectory)"
+              ArtifactName: "drop"
+              publishLocation: "Container"
+
+  - stage: PackAndPush
+    dependsOn: Build
+    jobs:
+      - job: NugetPush
+        steps:
+          - task: Assembly-Info-NetCore@2
+            displayName: Set Assembly Info
+            inputs:
+              Path: "$(Build.SourcesDirectory)"
+              FileNames: "**/*.csproj"
+              InsertAttributes: true
+              FileEncoding: "auto"
+              WriteBOM: false
+              Authors: "${{ parameters.authors }}"
+              Company: "${{ parameters.company }}"
+              Copyright: "${{ parameters.copyright }}"
+              VersionNumber: "${{ parameters.MajorVersion }}.${{ parameters.MinorVersion }}.$(Build.BuildId).0"
+              FileVersionNumber: "${{ parameters.MajorVersion }}.${{ parameters.MinorVersion }}.$(Build.BuildId).0"
+              InformationalVersion: "$(Build.BuildNumber)"
+
+          - template: .\devops\templates\dotnet-package-pack.yaml
+            parameters:
+              projPath: src/Umbrella.Infrastructure.Cache
+              projName: Umbrella.Infrastructure.Cache
+              MajorVersion: ${{ parameters.MajorVersion }}
+              MinorVersion: ${{ parameters.MinorVersion }}
+              buildNumber: $(Build.BuildId)
+
+          - task: DownloadSecureFile@1
+            name: nugetOrgKey
+            displayName: "Download Nuget Api Key"
+            inputs:
+              secureFile: "Nuget.apikey.txt"
+              retryCount: "5"
+
+          - powershell: |
+              Write-Host "##vso[task.setvariable variable=ReadApiKey;]$(nugetOrgKey.secureFilePath)"
+            displayName: Get Nuget.org NugetApiKey
+
+          - powershell: |
+              Write-Host "Key ==> $(ReadApiKey)"
+            displayName: Print Nuget.org NugetApiKey
+
+          - task: DotNetCoreCLI@2
+            displayName: Push to Nuget.org
+            inputs:
+              command: "custom"
+              custom: nuget
+              arguments: >
+                push $(Build.ArtifactStagingDirectory)/$(packageId).*.nupkg
+                -s https://api.nuget.org/v3/index.json
+                -k ${{ parameters.NugetApiKey }}
+            condition: eq(${{ parameters.PublishPackage }}, true)
