@@ -118,7 +118,7 @@ namespace Umbrella.Infrastructure.Cache.Providers
                 else
                 {
                     // get value
-                    entryValue = entry.Value;
+                    entryValue = entry != null ? entry.Value : null;
                     return true;
                 }
             }

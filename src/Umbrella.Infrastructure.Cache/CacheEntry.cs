@@ -40,7 +40,7 @@ namespace Umbrella.Infrastructure.Cache
         /// </summary>
         public bool HasExpired(int minutes)
         {
-            var diff = (TimeSpan)(DateTime.Now - this.CreatedOn);
+            TimeSpan diff = DateTime.Now - this.CreatedOn;
             return diff.TotalMinutes >= minutes;
         }
         /// <summary>
