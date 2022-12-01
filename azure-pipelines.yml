@@ -86,21 +86,6 @@ stages:
                 sonar.cs.vscoveragexml.reportsPaths=coverage.xml
             condition: eq(${{ parameters.SonarScanEnabled }}, true)
 
-          # - task: Assembly-Info-NetCore@2
-          #   displayName: Set Assembly Info
-          #   inputs:
-          #     Path: "$(Build.SourcesDirectory)"
-          #     FileNames: "**/*.csproj"
-          #     InsertAttributes: true
-          #     FileEncoding: "auto"
-          #     WriteBOM: false
-          #     Authors: "${{ parameters.authors }}"
-          #     Company: "${{ parameters.company }}"
-          #     Copyright: "${{ parameters.copyright }}"
-          #     VersionNumber: "${{ parameters.MajorVersion }}.${{ parameters.MinorVersion }}.$(Build.BuildId).0"
-          #     FileVersionNumber: "${{ parameters.MajorVersion }}.${{ parameters.MinorVersion }}.$(Build.BuildId).0"
-          #     InformationalVersion: "$(Build.BuildNumber)"
-
           - template: .\devops\templates\dotnet-build.yaml
             parameters:
               projPath: src/Umbrella.Infrastructure.Cache
@@ -111,12 +96,6 @@ stages:
               projPath: src/Umbrella.Infrastructure.Cache.Tests
               projName: Umbrella.Infrastructure.Cache.Tests
               publishRequired: false
-
-          # ############################# TEST #################################
-          # - template: .\devops\templates\dotnet-test.yaml
-          #   parameters:
-          #     projPath: src/Umbrella.Infrastructure.Cache.Tests
-          #     projName: Umbrella.Infrastructure.Cache.Tests
 
           - task: SonarCloudAnalyze@1
             displayName: "Run Sonar Cloud Analysis"
