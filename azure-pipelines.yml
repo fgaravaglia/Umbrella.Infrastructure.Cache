@@ -148,6 +148,21 @@ stages:
     jobs:
       - job: NugetPush
         steps:
+          - task: DownloadSecureFile@1
+            name: nugetOrgKey
+            displayName: "Download Nuget Api Key"
+            inputs:
+              secureFile: "Nuget.apikey.txt"
+              retryCount: "5"
+
+          - powershell: |
+              $key = Get-Content -Path $(nugetOrgKey.secureFilePath)
+              Write-Host "##vso[task.setvariable variable=ReadApiKey;]$key"
+            displayName: Get Nuget.org NugetApiKey
+
+          - powershell: |
+              Write-Host "Key ==> $(ReadApiKey)"
+            displayName: Print Nuget.org NugetApiKey
           - task: Assembly-Info-NetCore@2
             displayName: Set Assembly Info
             inputs:
@@ -170,21 +185,6 @@ stages:
               MajorVersion: ${{ parameters.MajorVersion }}
               MinorVersion: ${{ parameters.MinorVersion }}
               buildNumber: $(Build.BuildId)
-
-          - task: DownloadSecureFile@1
-            name: nugetOrgKey
-            displayName: "Download Nuget Api Key"
-            inputs:
-              secureFile: "Nuget.apikey.txt"
-              retryCount: "5"
-
-          - powershell: |
-              Write-Host "##vso[task.setvariable variable=ReadApiKey;]$(nugetOrgKey.secureFilePath)"
-            displayName: Get Nuget.org NugetApiKey
-
-          - powershell: |
-              Write-Host "Key ==> $(ReadApiKey)"
-            displayName: Print Nuget.org NugetApiKey
 
           - task: DotNetCoreCLI@2
             displayName: Push to Nuget.org
