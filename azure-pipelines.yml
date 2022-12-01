@@ -91,11 +91,11 @@ stages:
               projPath: src/Umbrella.Infrastructure.Cache
               projName: Umbrella.Infrastructure.Cache
 
-          - template: .\devops\templates\dotnet-build.yaml
-            parameters:
-              projPath: src/Umbrella.Infrastructure.Cache.Tests
-              projName: Umbrella.Infrastructure.Cache.Tests
-              publishRequired: false
+          # - template: .\devops\templates\dotnet-build.yaml
+          #   parameters:
+          #     projPath: src/Umbrella.Infrastructure.Cache.Tests
+          #     projName: Umbrella.Infrastructure.Cache.Tests
+          #     publishRequired: false
 
           - task: SonarCloudAnalyze@1
             displayName: "Run Sonar Cloud Analysis"
