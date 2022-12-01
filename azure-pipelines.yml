@@ -41,18 +41,11 @@ parameters:
   - name: SonarScanEnabled
     displayName: "Enable Sonar Scan"
     type: boolean
-    default: True
-  - name: TestExecutionEnabled
-    displayName: "Enable Test Execution"
-    type: boolean
     default: False
   - name: PublishPackage
     displayName: "Publish Package to Nuget.Org"
     type: boolean
     default: False
-  - name: NugetApiKey
-    displayName: "APIKEY to Publish Package on Nuget.Org"
-    default: "set here your Nuget Api Key"
 
 variables:
   buildConfiguration: "Release"
@@ -160,9 +153,10 @@ stages:
               Write-Host "##vso[task.setvariable variable=ReadApiKey;]$key"
             displayName: Get Nuget.org NugetApiKey
 
-          - powershell: |
-              Write-Host "Key ==> $(ReadApiKey)"
-            displayName: Print Nuget.org NugetApiKey
+          # - powershell: |
+          #     Write-Host "Key ==> $(ReadApiKey)"
+          #   displayName: Print Nuget.org NugetApiKey
+
           - task: Assembly-Info-NetCore@2
             displayName: Set Assembly Info
             inputs:
@@ -194,5 +188,5 @@ stages:
               arguments: >
                 push $(Build.ArtifactStagingDirectory)/$(packageId).*.nupkg
                 -s https://api.nuget.org/v3/index.json
-                -k ${{ parameters.NugetApiKey }}
+                -k $(ReadApiKey)
             condition: eq(${{ parameters.PublishPackage }}, true)
