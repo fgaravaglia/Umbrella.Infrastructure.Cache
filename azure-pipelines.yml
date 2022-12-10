@@ -31,7 +31,7 @@ parameters:
     default: 9
   - name: PatchVersion
     displayName: "Patch Version"
-    default: 1
+    default: 0
   - name: authors
     displayName: "Names of authors of the target package"
     default: "FG"
@@ -40,7 +40,7 @@ parameters:
     default: "Innova Solutions"
   - name: copyright
     displayName: "Copyright"
-    default: "FG 2022"
+    default: "FG 2022-2023"
   - name: SonarScanEnabled
     displayName: "Enable Sonar Scan"
     type: boolean
