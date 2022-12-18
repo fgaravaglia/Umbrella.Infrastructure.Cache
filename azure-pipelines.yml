@@ -25,10 +25,10 @@ pool:
 parameters:
   - name: MajorVersion
     displayName: "Major Version"
-    default: 0
+    default: 1
   - name: MinorVersion
     displayName: "Minor Version"
-    default: 9
+    default: 0
   - name: PatchVersion
     displayName: "Patch Version"
     default: 0
